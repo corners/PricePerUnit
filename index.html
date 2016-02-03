@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<body>
+	<p id="E">test
+	</p>
+	<table id="L">
+	</table>
+</body>
+<script>
+
+window.onerror = function(errorMsg, url, lineNumber, column, errorObj) {
+    var error = 'Error: ' + errorMsg + ' Script: ' + url + ' Line: ' + lineNumber
+    + ' Column: ' + column + ' StackTrace: ' +  errorObj;
+	var e = document.getElementById("E");
+	e.innerHTML = error;
+	//return true; // prevent default handling
+}
+</script>
+<script>
+(function() {
+	'use strict';
+
+	function Item(qty, value) {
+		this.Qty = qty;
+		this.Value = value;
+		return this;
+	}
+
+	function getUnitValue(value, qty) {
+		return value / qty;
+	}
+
+	function updateValue(item, unitValue) {
+		item.Value = item.Qty * unitValue;
+	}
+
+	function Pair(item, ui) {
+		this.Item = item;
+		this.Ui = ui;
+		return this;
+	}
+
+	function create(count) {
+	  //var arr = Array.from([for (i of Array(100).keys()) i], s => new Item(i, 0.0));
+	  var arr = [ new Item(1, 10), new Item(2, 25) ];
+	  return arr;
+	}
+
+	function clearContainer(container) {
+		container.innerHTML = '';
+	}
+
+	function addUI(container, item, onChange) {
+		var html = container.innerHTML;
+
+		var tr = document.createElement('tr');
+		var tdQ = document.createElement('td');
+		tdQ.innerHTML = item.Qty;
+		tr.appendChild(tdQ);
+
+		var tdV = document.createElement('td');
+
+		var span = document.createElement('span');
+		span.innerHTML = item.Value;
+		tdV.appendChild(span);		
+
+		var ipt = document.createElement('input');
+		ipt.Type = 'text';
+		ipt.value = item.Value;
+		ipt.addEventListener('input', function (e) {
+			console.log("keyup event detected! coming from this element:", e.target.value);
+			// calcuate new unit value
+
+			var value = parseInt(e.target.value, 10);
+
+			var unitValue = getUnitValue(value, item.Qty);
+			// update all items
+			// redraw all items
+
+			span.innerHTML = unitValue;
+		}, false);
+		tdV.appendChild(ipt);
+		tr.appendChild(tdV);
+
+		var updateUi = function(newValue) {
+			span.innerHTML = newValue;
+		};
+
+
+		container.appendChild(tr);
+		return tr;
+	}
+
+	function draw(container, items) {
+		items.forEach(function (item) {
+			console.log(item.Qty + '=' + item.Value);
+		});
+	}
+
+
+	function addLoadEvent(func) {
+		var oldonload = window.onload;
+		if (typeof window.onload != 'function') {
+			window.onload = func;
+		} else {
+			window.onload = function() {
+				if (oldonload) {
+					oldonload();
+				}
+				func();
+			}
+		}
+	}
+
+	function updateAllFrom(items, item) {
+		var unitValue = getUnitValue(item.Value, item.Qty);
+		items.forEach(function(a) {
+			if (a !== item) {
+				updateValue(a, unitValue);
+			}
+		});
+	}
+
+	var _items,
+		_drawables,
+		logAll;
+
+	addLoadEvent(function() {
+		console.log('started');
+
+		var tbl = document.getElementById("L");
+		var e = document.getElementById("E");
+		e.innerHTML  = 'test4';
+		logAll = function(items) {
+			draw(tbl, items);
+		};
+		_items = create(2);
+
+		updateValue(_items[0], 10);
+		updateAllFrom(_items, _items[0]);
+
+		clearContainer(tbl);
+		_drawables = Array.from(_items, function(item) {
+			var ui = addUI(tbl, item);
+			return new Pair(item, ui);
+		});
+		
+		logAll(_items);
+	});
+})();
+
+</script>
+</html>
+
